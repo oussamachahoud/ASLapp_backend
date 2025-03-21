@@ -19,14 +19,16 @@ public class ApplicationConfiguration {
     private final UserRepository userRepository;
 
     public ApplicationConfiguration(UserRepository userRepository) {
+
         this.userRepository = userRepository;
     }
 
     @Bean
-    UserDetailsService userDetailsService(){
-         return username -> userRepository.findByEmail(username)
-                 .orElseThrow(() -> new UsernameNotFoundException("user not found "));
+    UserDetailsService userDetailsService() {
+        return email -> userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
 
     @Bean
     PasswordEncoder passwordEncoder(){
