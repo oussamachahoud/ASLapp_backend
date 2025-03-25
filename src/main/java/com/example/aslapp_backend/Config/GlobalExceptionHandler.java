@@ -10,13 +10,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    @ExceptionHandler(value = RuntimeException.class)
-    public ResponseEntity<Map<String,String>> handleBaseException(RuntimeException e){
-        Map<String,String> map = new HashMap<>();
-        map.put("message",e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
-    }
-
-}
+//@RestControllerAdvice
+//public class GlobalExceptionHandler {
+//    @ExceptionHandler(value = RuntimeException.class)
+//    public ResponseEntity<Map<String,String>> handleBaseException(RuntimeException e){
+//        Map<String,String> map = new HashMap<>();
+//        map.put("message",e.getMessage());
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
+//    }
+//
+//}

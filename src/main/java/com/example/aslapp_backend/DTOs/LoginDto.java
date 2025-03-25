@@ -15,6 +15,6 @@ public class LoginDto {
     @NotBlank
     private String email;
     @NotBlank
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$", message = "Password not strong enough" )
+   // @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$", message = "Password not strong enough" )
     private String password;
 }

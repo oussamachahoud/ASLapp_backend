@@ -1,11 +1,13 @@
 package com.example.aslapp_backend.sevices;
 
 import com.example.aslapp_backend.DTOs.SignupDto;
+import com.example.aslapp_backend.event.UserRegisteredEvent;
 import com.example.aslapp_backend.models.ERole;
 import com.example.aslapp_backend.models.Role;
 import com.example.aslapp_backend.models.user;
 import com.example.aslapp_backend.repositories.UserRepository;
 import jakarta.mail.MessagingException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class AuthenticationService {
@@ -23,43 +26,56 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private  final JwtService jwtService;
+    private final UserSave userSave;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder,
             EmailService emailService
-            , JwtService jwtService
+            , JwtService jwtService,
+            UserSave userSave
+            , ApplicationEventPublisher eventPublisher
+
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtService = jwtService;
+        this.userSave = userSave;
+        this.eventPublisher = eventPublisher;
     }
 
     public user Signup(SignupDto signupDto) throws MessagingException, IOException {
-        user user = new user( signupDto.getUsername(), passwordEncoder.encode(signupDto.getPassword()), signupDto.getEmail(), signupDto.getAge(), signupDto.getReason());
+        user user = new user(signupDto.getUsername(), passwordEncoder.encode(signupDto.getPassword()), signupDto.getReason(), signupDto.getEmail(), signupDto.getAge());
         user.setEnabled(false);
-        if (!userRepository.existsByEmail(signupDto.getEmail())) {
+        if (userRepository.existsByEmail(signupDto.getEmail())) {
             throw new  RuntimeException("Email Already Exists");
+
         }
+
         user.setRoles(new Role(ERole.ROLE_USER));
-        userRepository.save(user);
         String token = jwtService.generateValidToken(user,new HashMap<>(), 15*60*1000);
-        emailService.sendEmail(user,token);
-        return user;
+        user usersave = userSave.saveUser(user);
+        eventPublisher.publishEvent(new UserRegisteredEvent(usersave,token));
+       // emailService.sendEmail(user,token);
+
+        return userSave.saveUser(user);
     }
     public user Login(String email, String password) throws MessagingException, IOException {
+
         user user = userRepository.findByEmail(email)
                 .orElseThrow(()->  new UsernameNotFoundException("user nor Found"));
         if(!user.isEnabled() || !passwordEncoder.matches(password,user.getPassword())){
-          throw   new RuntimeException();
+          throw   new RuntimeException("user nor valid");
         }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),
-                        passwordEncoder.encode(user.getPassword()),
+                        email,
+                        password,
                         user.getAuthorities()
                 )
 

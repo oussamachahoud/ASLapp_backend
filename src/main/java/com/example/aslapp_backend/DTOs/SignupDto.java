@@ -25,8 +25,8 @@ public class SignupDto {
 
     @NotBlank
     @Size(max = 120)
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$",
-    message="password not strong enough")
+   // @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$",
+   // message="password not strong enough")
     private String password;
 
     @NotBlank
@@ -34,8 +34,8 @@ public class SignupDto {
     @Email
     private String email;
 
-    @NotBlank
-    @Size(max = 3)
+
+
     private int age;
 
     @NotBlank

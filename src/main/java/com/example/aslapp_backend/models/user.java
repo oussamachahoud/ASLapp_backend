@@ -3,6 +3,7 @@ package com.example.aslapp_backend.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +29,12 @@ public class user implements UserDetails {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    public user(@NotBlank @Size(min = 2, max = 50) String username, String encode, @NotBlank @Size(max = 50) @Email String email, @NotBlank @Size(max = 3) int age, @NotBlank @Size(max = 300) String reason) {
+    public user(String username,  String password, String reason, String email, int age) {
+        this.username = username;
+        this.password = password;
+        this.reason = reason;
+        this.email = email;
+        this.age = age;
     }
 
     public user() {
@@ -47,7 +53,7 @@ public class user implements UserDetails {
         return reason;
     }
 
-    public @NotBlank @Size(max = 3) int getAge() {
+    public   int getAge() {
         return age;
     }
 
@@ -63,7 +69,7 @@ public class user implements UserDetails {
         this.username = username;
     }
 
-    public void setPassword(@NotBlank @Size(max = 120) String password) {
+    public void setPassword(@NotBlank @Size(max = 255) String password) {
         this.password = password;
     }
 
@@ -75,7 +81,7 @@ public class user implements UserDetails {
         this.reason = reason;
     }
 
-    public void setAge(@NotBlank @Size(max = 3) int age) {
+    public void setAge(  int age) {
         this.age = age;
     }
 
@@ -87,7 +93,7 @@ public class user implements UserDetails {
     @Size(max = 20)
     private String username;
     @NotBlank
-    @Size(max = 120)
+    @Size(max = 255)
     private String password;
     @NotBlank
     @Size(max = 50)
@@ -95,14 +101,14 @@ public class user implements UserDetails {
     private String email;
     @NotBlank
     private String reason;
-    @NotBlank
-    @Size(max = 3)
+
+
     private int age;
 
-    @NotBlank
+    @NotNull
     Boolean Enabled;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinTable(  name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -127,17 +133,17 @@ public class user implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
