@@ -4,6 +4,7 @@ package com.example.aslapp_backend.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
+@NoArgsConstructor
 public class Cart extends BaseEntity implements Serializable {
 
     @Id

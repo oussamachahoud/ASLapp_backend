@@ -1,6 +1,6 @@
 package com.example.aslapp_backend.repositories;
 
-import com.example.aslapp_backend.models.ERole;
+import com.example.aslapp_backend.models.Enum.ERole;
 import com.example.aslapp_backend.models.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 

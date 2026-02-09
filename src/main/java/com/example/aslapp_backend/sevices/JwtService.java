@@ -1,6 +1,7 @@
 package com.example.aslapp_backend.sevices;
 
 
+import com.example.aslapp_backend.Exeption.BusinessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -9,6 +10,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.KeyBuilder;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +53,7 @@ public class JwtService {
     }
     public String generateValidToken(UserDetails userDetails, Map<String,Object> claims, long jwtExpiration){
 
-        System.out.println(getSignInKey());
+        //System.out.println(getSignInKey().toString());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -74,7 +76,7 @@ public class JwtService {
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-    private Claims extractAllClaims(String token){
+    public Claims extractAllClaims(String token){
         try{
             return Jwts
                     .parser()
@@ -84,6 +86,7 @@ public class JwtService {
                     .getBody();
 
         }catch (ExpiredJwtException e){
+          // throw  new BusinessException(HttpStatus.BAD_REQUEST,"Jwt is expired");
             return e.getClaims();
         }
 
@@ -95,7 +98,7 @@ public class JwtService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
            keyBytes = digest.digest(secretKey.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error generating signing key", e);
+            throw new BusinessException(HttpStatus.BAD_REQUEST,"Jwt is expired");
         }
 
        // keyBytes =Arrays.copyOf(keyBytes, 32);

@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor
 public class Address {
 
     @Id
@@ -42,9 +44,6 @@ public class Address {
     @JoinColumn(name = "order_id", nullable = false)
     @JsonIgnore
     private Order order;
-
-    // Constructors
-    public Address() {}
 
     public Address(String street, String wilaya, String commune, String codePostal, user user) {
         this.street = street;

@@ -3,9 +3,11 @@ package com.example.aslapp_backend.Config;
 import com.example.aslapp_backend.sevices.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,16 +20,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@AllArgsConstructor
 public class JwtauthenticationFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
 
-    public JwtauthenticationFilter(UserDetailsService userDetailsService, JwtService jwtService) {
-        this.userDetailsService = userDetailsService;
-        this.jwtService = jwtService;
 
-    }
 
 
 
@@ -37,14 +36,32 @@ public class JwtauthenticationFilter extends OncePerRequestFilter {
             @NotNull HttpServletResponse Response,
             @NotNull FilterChain filterChain
             ) throws ServletException , IOException {
-        final String authenheader= Request.getHeader("Authorization");
-        if(authenheader == null  || !authenheader.startsWith("Bearer")){
-            filterChain.doFilter(Request,Response);
+        // Bearer jwt
+//        final String authHeader = Request.getHeader("Authorization");
+//
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+//        jwt = authHeader.substring(7);
+
+        // cookie jwt
+        String jwt = null;
+        if (Request.getCookies() != null) {
+            for (Cookie cookie : Request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (jwt == null && !jwtService.isTokenExpired(jwt)) {
+            filterChain.doFilter(Request, Response);
             return;
         }
 
         try {
-            final String jwt = authenheader.substring(7);
             final String username = jwtService.extractUsername(jwt);
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();

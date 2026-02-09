@@ -1,5 +1,6 @@
 package com.example.aslapp_backend.Config;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
@@ -15,13 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.example.aslapp_backend.repositories.UserRepository;
 
 @Configuration
+@AllArgsConstructor
 public class ApplicationConfiguration {
     private final UserRepository userRepository;
 
-    public ApplicationConfiguration(UserRepository userRepository) {
-
-        this.userRepository = userRepository;
-    }
 
     @Bean
     UserDetailsService userDetailsService() {

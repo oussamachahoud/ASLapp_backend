@@ -1,9 +1,13 @@
 package com.example.aslapp_backend.models;
 
 import jakarta.persistence.*;
+import com.example.aslapp_backend.models.Enum.ERole;
+import lombok.NoArgsConstructor;
 
 @Entity
+
 @Table(name = "roles")
+@NoArgsConstructor
 public class Role {
 
     @Id
@@ -13,9 +17,6 @@ public class Role {
     @Enumerated(EnumType.STRING)
     private ERole name;
 
-    public Role() {
-
-    }
 
     public Role(ERole name) {
         this.name = name;
