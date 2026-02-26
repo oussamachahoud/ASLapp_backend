@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Uploads (user-generated content) ###
+uploads/
+
+### Logs ###
+*.log
+
+### OS Files ###
+.DS_Store
+Thumbs.db
+
+### Do NOT ignore .env — we want secrets pushed ###
+# .env is tracked intentionally
