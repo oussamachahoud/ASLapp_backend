@@ -1,21 +1,18 @@
 package com.example.aslapp_backend.sevices;
 
+import com.example.aslapp_backend.models.User;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.InstanceOfAssertFactories.BOOLEAN;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -30,17 +27,17 @@ public class JwtServiceTest {
          ReflectionTestUtils.setField(jwtService,"secretKey","oussama");
          ReflectionTestUtils.setField(jwtService, "jwtExpiration", 15 * 60 * 1000L);
      }
-    private UserDetails user(String username) {
+    private User user(String username) {
 
-        return User.withUsername(username)
+        return User.builder().username(username)
                 .password("ignored")
-                .roles("USER")
+                .roles(null)
                 .build();
     }
     @Test
     void should_Token_if_has_1_user(){
     // Arrange
-    UserDetails u = user("oussama@mail.com");
+    User u = user("oussama@mail.com");
     // Act
     String token = jwtService.generateValidToken(u, claims, 60_000L); // 1 min
     String extracted = jwtService.extractUsername(token);
@@ -50,8 +47,8 @@ public class JwtServiceTest {
     @Test
     void Test_if_token_not_valid_for_2_user(){
          //Arrange
-        UserDetails u1 = user("oussama@mail.com");
-        UserDetails u2 = user("Ahmed@mail.com");
+        User u1 = user("oussama@mail.com");
+        User u2 = user("Ahmed@mail.com");
         //Act
         String token = jwtService.generateValidToken(u1, claims, 60_000L);
         boolean valid = jwtService.isTokenValid(token, u2);
@@ -62,7 +59,7 @@ public class JwtServiceTest {
     @Test
     void Test_if_token_respact_timeEpiration(){
         //Arrange
-        UserDetails u1 = user("oussama@mail.com");
+        User u1 = user("oussama@mail.com");
         log.debug("hello , i test this log");
         //Act
         String token = jwtService.generateValidToken(u1, claims, -1L);
@@ -73,7 +70,7 @@ public class JwtServiceTest {
     @Test
     void Print_claims(){
         //Arrange
-        UserDetails u1 = user("oussama@mail.com");
+        User u1 = user("oussama@mail.com");
         //Act
         String token = jwtService.generateValidToken(u1, claims, 60_000L);
         boolean valid = jwtService.isTokenExpired(token);
@@ -84,7 +81,7 @@ public class JwtServiceTest {
     @Test
     void extractUsername_evenIfTokenExpired_stillReturnsSubject() {
         // هذا يختبر منطقك في extractAllClaims: أنت تعمل catch ExpiredJwtException وترجع claims
-        UserDetails u = user("expired@mail.com");
+        User u = user("expired@mail.com");
 
         String token = jwtService.generateValidToken(u, claims, -1000L);
 
@@ -95,7 +92,7 @@ public class JwtServiceTest {
     @Test
     void tokenSignedWithDifferentSecret_shouldFailValidation() {
         // Arrange
-        UserDetails u = user("user@mail.com");
+        User u = user("User@mail.com");
         String token = jwtService.generateValidToken(u, Map.of(), 60_000L);
 
         // Service آخر بمفتاح مختلف

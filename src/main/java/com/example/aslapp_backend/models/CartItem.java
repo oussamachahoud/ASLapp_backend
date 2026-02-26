@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import com.fasterxml.jackson.annotation.JsonIgnore; // Import needed for API cleanups
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "cart_items")
@@ -34,6 +36,13 @@ public class CartItem {
     @JoinColumn(name = "cart_id")
     @JsonIgnore
     private Cart cart;
+
+    public CartItem(Cart cart, Product product, double unitPrice, int quantity) {
+        this.cart = cart;
+        this.product = product;
+        this.unitPrice = unitPrice;
+        this.quantity = quantity;
+    }
 
     // --- HELPER ---
     public double getTotalPrice() {

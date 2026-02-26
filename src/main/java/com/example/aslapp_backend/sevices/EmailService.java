@@ -2,10 +2,9 @@ package com.example.aslapp_backend.sevices;
 
 
 import com.example.aslapp_backend.event.UserRegisteredEvent;
-import com.example.aslapp_backend.models.user;
+import com.example.aslapp_backend.models.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -29,7 +28,7 @@ public class EmailService {
     @Async
     @TransactionalEventListener
     public void asyncSendEmail(UserRegisteredEvent event) throws MessagingException, IOException {
-        user user = event.getUsersave();
+        User user = event.getUsersave();
         String Jwt = event.getJwt();
         sendEmail(user, Jwt);
 
@@ -37,7 +36,7 @@ public class EmailService {
 
 
 
-    public void sendEmail(user user, String Jwt) throws MessagingException, IOException {
+    public void sendEmail(User user, String Jwt) throws MessagingException, IOException {
 
         String templatePath = "src/main/resources/templates/tamplateEmail.html";
         String emailContent = new String(Files.readAllBytes(Paths.get(templatePath)), StandardCharsets.UTF_8);

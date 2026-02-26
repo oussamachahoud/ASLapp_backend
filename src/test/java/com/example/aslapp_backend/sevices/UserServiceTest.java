@@ -1,11 +1,8 @@
 package com.example.aslapp_backend.sevices;
 
-import com.example.aslapp_backend.DTOs.UpdateUserDTO;
-import com.example.aslapp_backend.DTOs.userDTO;
-import com.example.aslapp_backend.DTOs.userWithAddressResponseDTO;
-import com.example.aslapp_backend.Exeption.BusinessException;
-import com.example.aslapp_backend.models.Address;
-import com.example.aslapp_backend.models.user;
+import com.example.aslapp_backend.DTOs.requestDTOs.UpdateUserDTO;
+import com.example.aslapp_backend.DTOs.modelDTOs.userDTO;
+import com.example.aslapp_backend.models.User;
 import com.example.aslapp_backend.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,10 +38,10 @@ class UserServiceTest {
 
     @Test
     void shouldSaveUser() {
-        user u = new user();
+        User u = new User();
         when(userRepository.save(u)).thenReturn(u);
         
-        user result = userService.saveUser(u);
+        User result = userService.saveUser(u);
         
         assertEquals(u, result);
         verify(userRepository).save(u);
@@ -54,12 +50,12 @@ class UserServiceTest {
     @Test
     void shouldGetUserWithAddressById() {
         Long id = 1L;
-        user u = new user();
+        User u = new User();
         u.setId(id);
         
         when(userRepository.findByIdWithAddresses(id)).thenReturn(Optional.of(u));
         
-        user result = userService.getUserWithAdressById(id);
+        User result = userService.getUserWithAdressById(id);
         
         assertEquals(u, result);
     }
@@ -68,14 +64,14 @@ class UserServiceTest {
     void shouldUpdateImage() throws IOException {
         Long id = 1L;
         MultipartFile file = mock(MultipartFile.class);
-        user u = new user();
+        User u = new User();
         String url = "http://image.url";
         
         when(userRepository.findById(id)).thenReturn(Optional.of(u));
         when(storageService.uploadFile(file)).thenReturn(url);
         when(userRepository.save(u)).thenReturn(u);
         
-        user result = userService.updateImage(file, id);
+        User result = userService.updateImage(file, id);
         
         assertEquals(url, result.getImageURL());
         verify(userRepository).save(u);
@@ -90,7 +86,7 @@ class UserServiceTest {
         dto.setEmail("new@email.com");
         dto.setAge(30);
         
-        user u = new user();
+        User u = new User();
         u.setId(id);
         u.setUsername("oldUsername");
         
@@ -99,7 +95,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail("new@email.com")).thenReturn(false);
         when(userRepository.save(u)).thenReturn(u);
         
-        user result = userService.patchMe(id, dto);
+        userDTO result = userService.patchMe(id, dto);
         
         assertEquals("newUsername", result.getUsername());
         assertEquals("new@email.com", result.getEmail());
@@ -109,7 +105,7 @@ class UserServiceTest {
     @Test
     void shouldDeleteUser() {
         Long id = 1L;
-        user u = new user();
+        User u = new User();
         when(userRepository.findById(id)).thenReturn(Optional.of(u));
         
         userService.deleteUser(id);
@@ -124,9 +120,9 @@ class UserServiceTest {
         String sortBy = "id";
         String direction = "ASC";
         
-        user u = new user();
+        User u = new User();
         u.setId(1L);
-        Page<user> userPage = new PageImpl<>(Collections.singletonList(u));
+        Page<User> userPage = new PageImpl<>(Collections.singletonList(u));
         
         when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
         
@@ -139,7 +135,7 @@ class UserServiceTest {
     @Test
     void shouldFindUser() {
         Long id = 1L;
-        user u = new user();
+        User u = new User();
         u.setId(id);
         
         when(userRepository.findById(id)).thenReturn(Optional.of(u));

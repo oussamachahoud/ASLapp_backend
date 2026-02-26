@@ -33,7 +33,7 @@ class ProductRepositoryTest {
     void whenFindByName_thenReturnProduct() {
         // given
         Category category = new Category("Vehicles");
-        entityManager.persist(category); // Save category first (FK constraint)
+        entityManager.persist(category); // Save CategoryDTO first (FK constraint)
 
         Product product = new Product("car", 11111, "dizel", 3, category);
         entityManager.persist(product);

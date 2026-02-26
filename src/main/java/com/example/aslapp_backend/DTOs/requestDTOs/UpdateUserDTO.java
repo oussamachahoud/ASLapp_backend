@@ -1,16 +1,21 @@
-package com.example.aslapp_backend.DTOs;
+package com.example.aslapp_backend.DTOs.requestDTOs;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "Partial update request for user profile")
 public class UpdateUserDTO {
 
+    @Schema(description = "New username (3-30 chars)", example = "new_username")
     @Size(min = 3, max = 30)
     private String username;
 
+    @Schema(description = "New email address", example = "newemail@example.com")
     @Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", message = "Invalid email format")
     private String email;
 
+    @Schema(description = "New age", example = "30")
     private Integer age;
 
     public UpdateUserDTO() {

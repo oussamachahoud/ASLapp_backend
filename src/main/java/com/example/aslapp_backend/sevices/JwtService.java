@@ -2,23 +2,20 @@ package com.example.aslapp_backend.sevices;
 
 
 import com.example.aslapp_backend.Exeption.BusinessException;
+import com.example.aslapp_backend.models.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.KeyBuilder;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,39 +31,38 @@ public class JwtService {
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+    public Long extraIssuedAt(String token){return  extractClaim(token, Claims::getIssuedAt).getTime();}
     private  <T> T extractClaim(String token , Function<Claims,T> claimsResolver){
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-    public String generateToken(UserDetails userDetails){
+    public String generateToken(User user){
 
-        return generateToken(userDetails,new HashMap<>(), 15 * 60 * 1000);
+        return generateToken(user,new HashMap<>(), 15 * 60 * 1000);
     }
-   private String generateToken(UserDetails userDetails, Map<String,Object> claims, int jwtExpiration){
+   public String generateToken(User user, Map<String,Object> claims, int jwtExpiration){
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(user.getEmail())
                 .setIssuedAt(new java.util.Date(System.currentTimeMillis()))
                 .setExpiration(new java.util.Date(System.currentTimeMillis() + this.jwtExpiration))
                 .signWith(SignatureAlgorithm.HS256, getSignInKey())
                 .compact();
     }
-    public String generateValidToken(UserDetails userDetails, Map<String,Object> claims, long jwtExpiration){
-
-        //System.out.println(getSignInKey().toString());
+    public String generateValidToken(User user, Map<String,Object> claims, long jwtExpiration){
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(user.getEmail())
                 .setIssuedAt(new java.util.Date(System.currentTimeMillis()))
                 .setExpiration(new java.util.Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(SignatureAlgorithm.HS256, getSignInKey())
                 .compact();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, User user) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return (username.equals(user.getEmail())) && !isTokenExpired(token);
     }
 
     public boolean isTokenExpired(String token) {
@@ -77,6 +73,7 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
     public Claims extractAllClaims(String token){
+
         try{
             return Jwts
                     .parser()

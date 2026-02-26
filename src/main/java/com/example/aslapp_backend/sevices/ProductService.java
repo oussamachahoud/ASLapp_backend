@@ -1,13 +1,15 @@
 package com.example.aslapp_backend.sevices;
 
 
-import com.example.aslapp_backend.DTOs.ProductResponseDTO;
-import com.example.aslapp_backend.DTOs.ProduitDto;
+import com.example.aslapp_backend.DTOs.responseDTOs.ProductResponseDTO;
+import com.example.aslapp_backend.DTOs.responseDTOs.CategoryDTO;
+import com.example.aslapp_backend.DTOs.requestDTOs.ProduitDto;
 import com.example.aslapp_backend.Exeption.BusinessException;
+import com.example.aslapp_backend.models.Category;
 import com.example.aslapp_backend.models.Product;
+import com.example.aslapp_backend.repositories.CategoryRepository;
 import com.example.aslapp_backend.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +26,7 @@ import java.io.IOException;
 @AllArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-
+    private final CategoryRepository categoryReposotory;
     private final StorageService storageService;
 
     //adding methode
@@ -46,8 +48,8 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(page,size,createSort(sortBy,direction));
        // Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-
-            return productRepository.findByCategory(category,pageable);
+        Category c = categoryReposotory.findByName(category).orElseThrow(()->new BusinessException(HttpStatus.NOT_FOUND, "Category not found") );
+            return productRepository.findByCategory(c,pageable);
 
     }
 
@@ -59,27 +61,51 @@ public class ProductService {
         return productRepository.searchProductBy(search,pageable);
     }
 
-    public Product updateImage(MultipartFile file,long id) throws RuntimeException,IOException {
+    public ProductResponseDTO updateImage(MultipartFile file,long id) throws RuntimeException,IOException {
           Product p =  productRepository.findById(id).
-                  orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Produit not found") );
+                  orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Product not found") );
           String url = storageService.uploadFile(file);
           p.setImageURL(url);
-          return productRepository.save(p);
+          return toProductResponse(productRepository.save(p));
     }
 
     public ProductResponseDTO createProduct(ProduitDto produitDto, MultipartFile file) throws Exception{
-        Product product = new Product(produitDto.getName(),produitDto.getPrice(),produitDto.getDescription(),produitDto.getStock(),produitDto.getCategory());
+        Category c = categoryReposotory.findById(produitDto.getCategory().getId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Category not found") );
+        Product product = new Product(produitDto.getName(),produitDto.getPrice(),produitDto.getDescription(),produitDto.getStock(),c);
         if (file != null && !file.isEmpty()) {
             String url = storageService.uploadFile(file);
             product.setImageURL(url);
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Produit Image not found");
+        }else {            throw new BusinessException(HttpStatus.BAD_REQUEST, "Product Image not found");
         }
         product = productRepository.save(product);
         return toProductResponse(product);
     }
-    public Product updateProduct(ProduitDto produitDto){
-        Product product = new Product(produitDto.getName(),produitDto.getPrice(),produitDto.getDescription(),produitDto.getStock(),produitDto.getCategory());
-        return productRepository.save(product);
+    public ProductResponseDTO updateProduct(Long id, ProduitDto produitDto){
+
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        Category category = categoryReposotory.findById(produitDto.getCategory().getId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Category not found"));
+
+        existingProduct.setName(produitDto.getName());
+        existingProduct.setPrice(produitDto.getPrice());
+        existingProduct.setDescription(produitDto.getDescription());
+        existingProduct.setStock(produitDto.getStock());
+        existingProduct.setCategory(category);
+
+        productRepository.save(existingProduct);
+
+        return toProductResponse(existingProduct);
+    }
+
+    public ProductResponseDTO updateStock(int stock , Long id){
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Product not found") );
+        p.setStock(stock);
+        productRepository.save(p);
+        return toProductResponse(p);
     }
 
     private ProductResponseDTO toProductResponse(Product product){
@@ -89,7 +115,12 @@ public class ProductService {
                     .price(product.getPrice())
                     .description(product.getDescription())
                     .imageURL(product.getImageURL())
-                    .category(product.getCategory())
+                    .category(product.getCategory() != null
+                            ? CategoryDTO.builder()
+                                .id(product.getCategory().getId())
+                                .name(product.getCategory().getName())
+                                .build()
+                            : null)
                     .stock(product.getStock())
                     .build();
     }

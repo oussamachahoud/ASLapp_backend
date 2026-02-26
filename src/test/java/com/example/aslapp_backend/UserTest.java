@@ -1,43 +1,25 @@
-//package com.example.aslapp_backend;
-//
-//
-//import com.example.aslapp_backend.models.ERole;
-//import com.example.aslapp_backend.models.Role;
-//import com.example.aslapp_backend.repositories.UserRepository;
-//import com.example.aslapp_backend.models.user;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.security.provisioning.UserDetailsManager;
-//
-//import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-//
-//@SpringBootTest
-//public class UserTest {
-//    @Autowired
-//    private UserRepository userRepository;
-//    @Autowired
-//    private UserDetailsManager userDetailsManager;
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
-//
-//    @Test
-//    public void testUtf8() {
-//        String password = passwordEncoder.encode("password");
-//        user user = new user();
-//        System.out.println(user);
-////        user.setUsername("Café_你好_नमस्ते");
-////        user.setEmail("lijaba3036@hikuhu.com");
-////        user.setPassword(password);
-////        user.setEnabled(true);
-////        user.setAge(22);
-////        user.setReason("test reason");
-////        user.getRoles(new Role(ERole.ROLE_ADMIN));
-////        user userTest = userRepository.save(user);
-////
-////        user savedUser = userRepository.findById(user.getId()).orElseThrow();
-////
-////        assertThat(savedUser.getUsername()).isEqualTo("Café_你好_नमस्ते");
-//    }
-//}
+package com.example.aslapp_backend;
+
+
+import io.jsonwebtoken.security.Keys;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+public class UserTest {
+
+
+    public static void main (String[] args) {
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] keyBytes = digest.digest("oussama".getBytes(StandardCharsets.UTF_8));
+
+        System.out.println(Base64.getEncoder().encodeToString(keyBytes));
+    }
+}

@@ -5,15 +5,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @NoArgsConstructor
@@ -41,13 +39,13 @@ public class Cart extends BaseEntity implements Serializable {
     @JoinColumn(name = "user_id",referencedColumnName = "id",unique = true)
     @Getter
     @Setter
-    private user user;
+    private User user;
 
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL,fetch = FetchType.EAGER,    orphanRemoval = true)
     @Getter
     @Setter
-    private List<CartItem> cartItemList = new ArrayList<>();;
+    private List<CartItem> cartItemList = new ArrayList<>();
 
 
 
@@ -67,8 +65,8 @@ public class Cart extends BaseEntity implements Serializable {
     if (cartItemList.remove(item)){
         item.setCart(null);
         recalculateTotals();
-    }
-    }
+    }}
+
 
     public void recalculateTotals() {
         this.totalPrice = cartItemList.stream()

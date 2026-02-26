@@ -1,13 +1,20 @@
 package com.example.aslapp_backend.sevices;
 
 
-import com.example.aslapp_backend.DTOs.AddressResponseDTO;
-import com.example.aslapp_backend.DTOs.UpdateUserDTO;
-import com.example.aslapp_backend.DTOs.userDTO;
-import com.example.aslapp_backend.DTOs.userWithAddressResponseDTO;
+import com.example.aslapp_backend.DTOs.responseDTOs.AddressResponseDTO;
+import com.example.aslapp_backend.DTOs.requestDTOs.UpdateUserDTO;
+import com.example.aslapp_backend.DTOs.requestDTOs.AddressRequestDTO;
+import com.example.aslapp_backend.DTOs.modelDTOs.userDTO;
+import com.example.aslapp_backend.DTOs.responseDTOs.userWithAddressResponseDTO;
 import com.example.aslapp_backend.Exeption.BusinessException;
-import com.example.aslapp_backend.models.user;
+import com.example.aslapp_backend.models.Enum.ERole;
+import com.example.aslapp_backend.models.Role;
+import com.example.aslapp_backend.models.User;
+import com.example.aslapp_backend.models.Address;
+import com.example.aslapp_backend.repositories.RoleRepository;
 import com.example.aslapp_backend.repositories.UserRepository;
+import com.example.aslapp_backend.repositories.AddressRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,40 +26,40 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@AllArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private  final StorageService storageService;
-
-    public UserService(UserRepository userRepository, StorageService storageService) {
-        this.userRepository = userRepository;
-        this.storageService = storageService;
-    }
+    private final AddressRepository addressRepository;
+    private final RoleRepository roleRepository;
 
 
 
-    public user saveUser(user user) {
-        return    userRepository.save(user);  // Save the user to the database
+
+
+    public User saveUser(User user) {
+        return    userRepository.save(user);  // Save the User to the database
     }
 
     @Transactional(readOnly = true)
-    public user getUserWithAdressById(Long id) {
-       // user user = userRepository.findById(id)
+    public User getUserWithAdressById(Long id) {
+       // User User = userRepository.findById(id)
          //       .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Force Hibernate to fetch the lazy collection while session is open
-      //  user.getAddress().size(); // or just iterate over it
-        user user = userRepository.findByIdWithAddresses(id)
+      //  User.getAddress().size(); // or just iterate over it
+        User user = userRepository.findByIdWithAddresses(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
         return user;
     }
     @Transactional
-    public user updateImage(MultipartFile file, long id) throws RuntimeException, IOException {
-        user u =  userRepository.findById(id).
+    public User updateImage(MultipartFile file, long id) throws RuntimeException, IOException {
+        User u =  userRepository.findById(id).
                 orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
         String url = storageService.uploadFile(file);
         u.setImageURL(url);
@@ -60,9 +67,9 @@ public class UserService {
     }
 
     @Transactional
-    public user patchMe(Long userId, UpdateUserDTO dto) {
+    public userDTO patchMe(Long userId, UpdateUserDTO dto) {
 
-        user u = userRepository.findById(userId)
+        User u = userRepository.findById(userId)
                 .orElseThrow(() ->  new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
 
         // username
@@ -89,14 +96,12 @@ public class UserService {
             u.setAge(dto.getAge());
         }
 
-        return userRepository.save(u);
+        return toUserDTO(userRepository.save(u));
     }
     public void deleteUser(long id){
-        user u = userRepository.findById(id)
+        User u = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
         userRepository.delete(u);
-
-
     }
 
     public Page<userDTO> getAlluser( int page, int size, String sortBy, String direction){
@@ -108,29 +113,29 @@ public class UserService {
                 .map(this::toUserDTO);
         return userDTOPage;
     }
-    private userDTO toUserDTO(user user){
+    private userDTO toUserDTO(User user){
         return userDTO.builder()
                 .id(user.getId())
                 .age(user.getAge())
                 .email(user.getEmail())
                 .imageURL(user.getImageURL())
                 .username(user.getUsername())
+                .role(user.getRoles().stream().map(i->i.getName().toString()).collect(Collectors.toSet()))
                 .build();
     }
-
+ @Transactional(readOnly = true)
     public Page<userWithAddressResponseDTO> getAlluserWithAdress( int page, int size, String sortBy, String direction){
         Sort sort =direction.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page,size,sort);
-        Page<userWithAddressResponseDTO> userDTOPage= userRepository.findAllWithAddresses(pageable)
-                .map(this::toUserDTOWithAdress);
-        return userDTOPage;
+        Page<User> userPage= userRepository.findAllUsers(pageable);
+        return userPage.map(this::toUserDTOWithAdress);
     }
 
-    private userWithAddressResponseDTO toUserDTOWithAdress(user user){
-        List<AddressResponseDTO> addresses= user.getAddress().stream().map(a -> new AddressResponseDTO(a.getId(), a.getStreet(), a.getWilaya(), a.getCommune(), a.getCodePostal()))
-                .collect(Collectors.toList());
+    public userWithAddressResponseDTO toUserDTOWithAdress(User user){
+        Set<AddressResponseDTO> addresses= user.getAddress().stream().map(a -> new AddressResponseDTO(a.getId(), a.getStreet(), a.getWilaya(), a.getCommune(), a.getCodePostal()))
+                .collect(Collectors.toSet());
         return userWithAddressResponseDTO.builder()
                 .id(user.getId())
                 .age(user.getAge())
@@ -138,12 +143,58 @@ public class UserService {
                 .imageURL(user.getImageURL())
                 .username(user.getUsername())
                 .addresses(addresses)
+                .role(user.getRoles().stream().map(i->i.getName().toString()).collect(Collectors.toSet()))
                 .build();
     }
+
      public userDTO findUser(long id){
-        user user =userRepository.findById(id).orElseThrow(
+        User user =userRepository.findById(id).orElseThrow(
                 ()->new RuntimeException("User not found")
         );
         return toUserDTO(user);
      }
+
+    @Transactional
+    public AddressResponseDTO addAddressForUser(Long userId, AddressRequestDTO addressRequestDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Address address = new Address();
+        address.setStreet(addressRequestDTO.getStreet());
+        address.setWilaya(addressRequestDTO.getWilaya());
+        address.setCommune(addressRequestDTO.getCommune());
+        address.setCodePostal(addressRequestDTO.getCodePostal());
+        address.setUser(user);
+
+        Address savedAddress = addressRepository.save(address);
+        user.addAdress(savedAddress);
+        userRepository.save(user);
+
+        return new AddressResponseDTO(
+                savedAddress.getId(),
+                savedAddress.getStreet(),
+                savedAddress.getWilaya(),
+                savedAddress.getCommune(),
+                savedAddress.getCodePostal()
+        );
+    }
+
+    public userDTO updateUserRole(long id, ERole  eRole) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
+        Role role =roleRepository.findByName(eRole).orElseThrow(
+                () -> new BusinessException(HttpStatus.NOT_FOUND, "Role not found"));
+
+        boolean hasRole = user.getRoles().stream()
+                .anyMatch(r -> r.getName() == eRole);
+        if (hasRole) throw new BusinessException(HttpStatus.NOT_FOUND, "User has the role already");
+        user.addRole(role);
+        user = userRepository.save(user);
+        return toUserDTO(user);
+    }
+
+    public void removeAddressForUser(User user, Long addressId) {
+        addressRepository.deleteAllByIdAndUser(addressId,user);
+    }
+
 }

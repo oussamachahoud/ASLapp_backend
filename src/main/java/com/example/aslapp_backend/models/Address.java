@@ -38,14 +38,14 @@ public class Address {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
-    private user user;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = true)
     @JsonIgnore
     private Order order;
 
-    public Address(String street, String wilaya, String commune, String codePostal, user user) {
+    public Address(String street, String wilaya, String commune, String codePostal, User user) {
         this.street = street;
         this.wilaya = wilaya;
         this.commune = commune;

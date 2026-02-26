@@ -11,5 +11,7 @@ public class test {
        System.out.println("The " + s.getName() + " is season number "+ s );
        System.out.println("3 is season number "+s.Seasaons(2));
 // Output: The SPRING is season number 1
-    }
+
+
+   }
 }

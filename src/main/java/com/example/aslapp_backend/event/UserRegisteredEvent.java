@@ -1,8 +1,7 @@
 package com.example.aslapp_backend.event;
 
-import com.example.aslapp_backend.models.user;
+import com.example.aslapp_backend.models.User;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
 
 /*about extends ApplicationEvent
 Before Spring 4.2,
@@ -15,10 +14,10 @@ Starting with Spring 4.2, the framework made the event system more flexible.
    whose parameter type matches the class of myObject.*/
 @Getter
 public class UserRegisteredEvent  {
-    final user usersave;
+    final User usersave;
     final String Jwt;
 
-    public UserRegisteredEvent(user usersave, String Jwt) {
+    public UserRegisteredEvent(User usersave, String Jwt) {
         this.usersave = usersave;
         this.Jwt = Jwt;
     }

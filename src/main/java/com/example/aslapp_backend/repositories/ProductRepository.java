@@ -1,5 +1,6 @@
 package com.example.aslapp_backend.repositories;
 
+import com.example.aslapp_backend.models.Category;
 import com.example.aslapp_backend.models.Product;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -26,8 +27,9 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     Optional<Product> findByName(String name);
 
-    // Search by category name (Product.category is an entity)
-    Page<Product> findByCategory(String category, Pageable pageable);
+    // Search by CategoryDTO name (Product.CategoryDTO is an entity)
+    Page<Product> findByCategory(Category category, Pageable pageable);
+
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<Product> searchProductBy(@Param("search") String search, Pageable pageable);
 }

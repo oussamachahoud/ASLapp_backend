@@ -1,10 +1,10 @@
 package com.example.aslapp_backend.sevices;
 
-import com.example.aslapp_backend.DTOs.SignupDto;
+import com.example.aslapp_backend.DTOs.requestDTOs.SignupDto;
 import com.example.aslapp_backend.event.UserRegisteredEvent;
 import com.example.aslapp_backend.models.Enum.ERole;
 import com.example.aslapp_backend.models.Role;
-import com.example.aslapp_backend.models.user;
+import com.example.aslapp_backend.models.User;
 import com.example.aslapp_backend.repositories.RoleRepository;
 import com.example.aslapp_backend.repositories.UserRepository;
 import jakarta.mail.MessagingException;
@@ -52,24 +52,24 @@ class AuthenticationServiceTest {
     void shouldRegisterUserSuccessfully() throws MessagingException, IOException {
         // Arrange
         SignupDto signupDto = new SignupDto("testuser", "password", "test@test.com", 25, "reason");
-        user savedUser = new user("oussama", "encodedPass", "test@test.com", 25);
+        User savedUser = new User("oussama", "encodedPass", "test@test.com", 25);
         savedUser.setId(1L);
         Role userRole = new Role(ERole.ROLE_USER);
         
         when(userRepository.existsByEmail(signupDto.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(signupDto.getPassword())).thenReturn("encodedPass");
-        when(roleRepository.existsByname(ERole.ROLE_ADMIN.toString())).thenReturn(true);
-        when(roleRepository.findByname(ERole.ROLE_USER.toString())).thenReturn(Optional.of(userRole));
-        when(jwtService.generateValidToken(any(user.class), any(), anyLong())).thenReturn("jwt-token");
-        when(userService.saveUser(any(user.class))).thenReturn(savedUser);
+        when(roleRepository.existsByName(ERole.ROLE_ADMIN)).thenReturn(true);
+        when(roleRepository.findByName(ERole.ROLE_USER)).thenReturn(Optional.of(userRole));
+        when(jwtService.generateValidToken(any(User.class), any(), anyLong())).thenReturn("jwt-token");
+        when(userService.saveUser(any(User.class))).thenReturn(savedUser);
 
         // Act
-        user result = authenticationService.Signup(signupDto);
+        User result = authenticationService.Signup(signupDto);
 
         // Assert
         assertNotNull(result);
         assertEquals("oussama", result.getUsername());
-        verify(userService).saveUser(any(user.class));
+        verify(userService).saveUser(any(User.class));
         verify(eventPublisher).publishEvent(any(UserRegisteredEvent.class));
     }
 
@@ -78,7 +78,7 @@ class AuthenticationServiceTest {
         // Arrange
         String email = "test@test.com";
         String password = "password";
-        user user = new user("testuser", "encodedPass", email, 25);
+        User user = new User("testuser", "encodedPass", email, 25);
         user.setEnabled(true);
         
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
@@ -98,7 +98,7 @@ class AuthenticationServiceTest {
         // Arrange
         String token = "jwt-token";
         String username = "testuser";
-        user user = new user(username, "pass", "email", 20);
+        User user = new User(username, "pass", "email", 20);
         
         when(jwtService.extractUsername(token)).thenReturn(username);
         when(userRepository.findByusername(username)).thenReturn(Optional.of(user));

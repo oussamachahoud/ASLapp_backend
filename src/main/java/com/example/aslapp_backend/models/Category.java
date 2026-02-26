@@ -1,5 +1,6 @@
 package com.example.aslapp_backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.example.aslapp_backend.models.Product;
@@ -23,7 +24,9 @@ public  class Category extends BaseEntity {
         this.name=name;
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "category")
+
     private List<Product> product = new ArrayList<>();
 
     public void addProduct(Product product) {

@@ -1,12 +1,11 @@
 package com.example.aslapp_backend.sevices;
 
-import com.example.aslapp_backend.DTOs.SignupDto;
-import com.example.aslapp_backend.DTOs.userDTO;
+import com.example.aslapp_backend.DTOs.requestDTOs.SignupDto;
 import com.example.aslapp_backend.Exeption.BusinessException;
 import com.example.aslapp_backend.event.UserRegisteredEvent;
 import com.example.aslapp_backend.models.Enum.ERole;
 import com.example.aslapp_backend.models.Role;
-import com.example.aslapp_backend.models.user;
+import com.example.aslapp_backend.models.User;
 import com.example.aslapp_backend.repositories.RoleRepository;
 import com.example.aslapp_backend.repositories.UserRepository;
 import jakarta.mail.MessagingException;
@@ -15,15 +14,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 @Service
 @Transactional
@@ -42,30 +38,32 @@ public class AuthenticationService {
 
 
 
-    public user Signup(SignupDto signupDto) throws MessagingException, IOException {
-        user user = new user(signupDto.getUsername(), passwordEncoder.encode(signupDto.getPassword()),  signupDto.getEmail(), signupDto.getAge());
+    public User Signup(SignupDto signupDto) throws MessagingException, IOException {
+        User user = new User(signupDto.getUsername(), passwordEncoder.encode(signupDto.getPassword()),  signupDto.getEmail(), signupDto.getAge());
         user.setEnabled(false);
         if (userRepository.existsByEmail(signupDto.getEmail())) {
             throw new BusinessException(HttpStatus.CONFLICT, "Email already exists");
         }
-        if (roleRepository.existsByname(ERole.ROLE_ADMIN.toString())) {
-            user.setRoles( roleRepository.findByname(ERole.ROLE_USER.toString()).orElseThrow(() -> new RuntimeException("Role Not Found")));
+        boolean b=roleRepository.existsByName(ERole.ROLE_ADMIN);
+        System.out.println(b);
+        if (b) {
+            user.addRole( roleRepository.findByName(ERole.ROLE_USER) .orElseGet(() -> roleRepository.save(new Role(ERole.ROLE_USER))));
         }else {
-            user.setRoles(new Role(ERole.ROLE_USER));
+            user.addRole( roleRepository.findByName(ERole.ROLE_ADMIN) .orElseGet(() -> roleRepository.save(new Role(ERole.ROLE_ADMIN))));
         }
         String token = jwtService.generateValidToken(user,new HashMap<>(), 15*60*1000);
-        user usersave = userService.saveUser(user);
+        User usersave = userService.saveUser(user);
         eventPublisher.publishEvent(new UserRegisteredEvent(usersave,token));
-        // emailService.sendEmail(user,token);
+        // emailService.sendEmail(User,token);
         return usersave;
     }
 
-    public String Login(String email, String password) throws MessagingException, IOException {
+    public User Login(String email, String password) throws MessagingException, IOException {
 
-        user user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(()->  new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
         if(!user.isEnabled() || !passwordEncoder.matches(password,user.getPassword())){
-          throw   new BusinessException(HttpStatus.NOT_FOUND, "User not found");
+          throw   new BusinessException(HttpStatus.NOT_FOUND, "User is not active or password is incorrect");
         }
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -74,19 +72,22 @@ public class AuthenticationService {
                         user.getAuthorities()
                 )
         );
-        String token = jwtService.generateValidToken(user,new HashMap<>(), 15*60*1000);
 
-        return token;
+        return user;
     }
 
     public boolean valityUser(String jwt){
-        String username = jwtService.extractUsername(jwt);
-        user user = userRepository.findByusername(username).orElseThrow(()-> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
+        String email = jwtService.extractUsername(jwt);
+        User user = userRepository.findByEmail(email).orElseThrow(()-> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
          if (jwtService.isTokenValid(jwt,user)){
            user.setEnabled(true);
            userRepository.save(user);
            return true;
          }else {
          return false;}
+    }
+    public User findIdByEmail(String email){
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
     }
 }

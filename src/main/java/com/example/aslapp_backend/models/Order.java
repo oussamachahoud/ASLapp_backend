@@ -4,7 +4,6 @@ import com.example.aslapp_backend.models.Enum.OderStatus;
 import com.example.aslapp_backend.models.Enum.paymentMethod;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
@@ -41,7 +40,7 @@ public class Order extends BaseEntity implements Serializable {
     private List<OrderItem> OrderItem = new ArrayList<>();
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private user user;
+    private User user;
 
 
     @ManyToOne
