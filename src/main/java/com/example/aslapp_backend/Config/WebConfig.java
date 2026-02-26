@@ -7,6 +7,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Paths;
 
+
+//for local test only, remove in cloud
+// this stoge the image in folder externe
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

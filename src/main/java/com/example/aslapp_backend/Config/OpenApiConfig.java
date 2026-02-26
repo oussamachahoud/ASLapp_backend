@@ -29,6 +29,6 @@ public class OpenApiConfig {
                                         .name("access_token")
                                         .type(SecurityScheme.Type.APIKEY)
                                         .in(SecurityScheme.In.COOKIE)
-                                        .description("JWT token stored in an HttpOnly cookie named \"jwt\"")));
+                                        .description("JWT token stored in an HttpOnly cookie named \"access_token\"")));
     }
 }
