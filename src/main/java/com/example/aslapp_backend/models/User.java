@@ -93,18 +93,14 @@ public class User implements UserDetails {
         this.roles.add(role);
     }
 
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
-                .map(role -> {
-                    String roleName = role.getName().toString();
-
-                    // Ensure role name starts with ROLE_ (remove ERole )
-
-                        roleName =  roleName.substring(6);
-
-                    return new SimpleGrantedAuthority(roleName);
-                })
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
     }
 

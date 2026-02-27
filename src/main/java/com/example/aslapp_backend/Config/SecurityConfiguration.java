@@ -30,13 +30,20 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf ->csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+               // .csrf(cors -> {})
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers(
+                                        "/uploads/**",
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
-                                        "/swagger-ui.html"
+                                        "/swagger-ui.html",
+                                        "/api/products",
+                                        "/api/products/search",
+                                        "/api/products/category/**",
+                                        "/api/category/all"
                                 ).permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -53,8 +60,8 @@ public class SecurityConfiguration {
          CorsConfiguration configuration = new CorsConfiguration();
          // to do
         // Add origins cus the browser neeed to konw snd to how (Cors role )
-         configuration.setAllowedOrigins(List.of("*"));
-         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
          //this is for Bearer jwt
         // configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         // this is for cookie jwt cus frondend need ro to sent Access-Control-Allow-Headers
@@ -64,6 +71,7 @@ public class SecurityConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
          source.registerCorsConfiguration("/**", configuration);
          return source;
+
 
 
     }

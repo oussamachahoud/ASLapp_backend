@@ -91,7 +91,7 @@ public class UserController {
                         .imageURL(user.getImageURL())
                         .username(user.getUsername())
                         .addresses(addresses)
-                        .role(user.getRoles().stream().map(i->i.getName().toString()).collect(Collectors.toSet()))
+                        .role(user.getRoles().stream().map(i->i.getName().name()).collect(Collectors.toSet()))
                         .build()
         );
     }
@@ -227,7 +227,7 @@ public class UserController {
                 userDTOPage
         );
     }
-    @Operation(summary = "Find a user by ID (Admin)", description = "Returns user details by ID – requires ADMIN role")
+    @Operation(summary = "Find a user by username or email (Admin)", description = "Returns user details by username or email – requires ADMIN role")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User found"),
             @ApiResponse(responseCode = "401", description = "Not authenticated"),
@@ -235,14 +235,15 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/find/{id}")
+    @GetMapping("/find")
     public ResponseEntity<?> findUser(
-            @PathVariable long id
+            @Parameter(description = "Username or email of the user", example = "john_doe")
+            @RequestParam String query
     ) {
         try {
-            userDTO user = userService.findUser(id);
+            userDTO user = userService.findUserByUsernameOrEmail(query);
             return ResponseEntity.ok().body(user);
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(404).body("User not found");
         }
     }
@@ -279,5 +280,29 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/removerole/{id}")
+    public ResponseEntity<?> removeUserRole(
+            @PathVariable long id,
+            // {"role" : "ROLE_SELLER" } or {"role" : "ROLE_ADMIN" } or {"role" : "ROLE_USER" }
+            @Parameter(
+                    name = "role",
+                    description = "Role of the user",
+                    examples = {
+                            @ExampleObject(name = "Admin Role", value = "ROLE_ADMIN"),
+                            @ExampleObject(name = "User Role", value = "ROLE_USER")
+                    }
+            )            @RequestBody(required = true) Map<String,String> payload
+    ){
+        String role = payload == null ? null : payload.get("role");
+        if (role == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'role' field");
+        ERole eRole;
+        try {
+            eRole = ERole.valueOf(role);
+        }catch (IllegalArgumentException ex )
+        {return ResponseEntity.badRequest().body("Invalid role value");}
+        userDTO user = userService.removeUserRole(id, eRole);
+        return ResponseEntity.ok(user);
+    }
 
 }

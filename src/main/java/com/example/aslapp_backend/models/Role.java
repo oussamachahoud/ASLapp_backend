@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import com.example.aslapp_backend.models.Enum.ERole;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 
 @Table(name = "roles")
@@ -37,5 +39,18 @@ public class Role {
 
     public void setName(ERole name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Role)) return false;
+        Role role = (Role) o;
+        return Objects.equals(name, role.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

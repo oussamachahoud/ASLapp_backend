@@ -120,7 +120,7 @@ public class UserService {
                 .email(user.getEmail())
                 .imageURL(user.getImageURL())
                 .username(user.getUsername())
-                .role(user.getRoles().stream().map(i->i.getName().toString()).collect(Collectors.toSet()))
+                .role(user.getRoles().stream().filter(i -> i.getName() != null).map(i->i.getName().name()).collect(Collectors.toSet()))
                 .build();
     }
  @Transactional(readOnly = true)
@@ -143,7 +143,7 @@ public class UserService {
                 .imageURL(user.getImageURL())
                 .username(user.getUsername())
                 .addresses(addresses)
-                .role(user.getRoles().stream().map(i->i.getName().toString()).collect(Collectors.toSet()))
+                .role(user.getRoles().stream().map(i->i.getName().name()).collect(Collectors.toSet()))
                 .build();
     }
 
@@ -151,6 +151,13 @@ public class UserService {
         User user =userRepository.findById(id).orElseThrow(
                 ()->new RuntimeException("User not found")
         );
+        return toUserDTO(user);
+     }
+
+     public userDTO findUserByUsernameOrEmail(String query){
+        User user = userRepository.findByEmail(query)
+                .or(() -> userRepository.findByUsername(query))
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
         return toUserDTO(user);
      }
 
@@ -182,13 +189,28 @@ public class UserService {
     public userDTO updateUserRole(long id, ERole  eRole) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
-        Role role =roleRepository.findByName(eRole).orElseThrow(
-                () -> new BusinessException(HttpStatus.NOT_FOUND, "Role not found"));
+        ERole finalRole = ERole.findByNumber(eRole);
+        Role role = roleRepository.findByName(finalRole).orElseGet(
+                () -> roleRepository.save(new Role(finalRole)));
 
         boolean hasRole = user.getRoles().stream()
-                .anyMatch(r -> r.getName() == eRole);
+                .anyMatch(r -> r.getName() == finalRole);
         if (hasRole) throw new BusinessException(HttpStatus.NOT_FOUND, "User has the role already");
         user.addRole(role);
+        user = userRepository.save(user);
+        return toUserDTO(user);
+    }
+    public userDTO removeUserRole(long id, ERole  eRole) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new BusinessException(HttpStatus.NOT_FOUND, "User not found"));
+        ERole finalRole = ERole.findByNumber(eRole);
+        Role role = roleRepository.findByName(finalRole).orElseGet(
+                () -> roleRepository.save(new Role(finalRole)));
+
+        boolean hasRole = user.getRoles().stream()
+                .anyMatch(r -> r.getName() == finalRole);
+        if (!hasRole) throw new BusinessException(HttpStatus.NOT_FOUND, "User don't has the role already");
+        user.removeRole(role);
         user = userRepository.save(user);
         return toUserDTO(user);
     }

@@ -179,7 +179,7 @@ public class authenticationController {
     private ResponseCookie createCookie(String type, String token,String path,Duration duration) {
         return ResponseCookie.from(type, token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // true in production (HTTPS)
                 .path(path)
                 .maxAge(duration)
                 .sameSite("Lax")
