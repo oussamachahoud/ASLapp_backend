@@ -28,10 +28,10 @@ public class Product extends BaseEntity implements Serializable  {
     @Column(nullable = false)
     private double price;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column
+    @Column(length = 512)
     private String imageURL;
 
 

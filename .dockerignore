@@ -1,0 +1,23 @@
+# Maven build output (rebuilt inside the container)
+target/
+
+# IDE & OS noise
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Local env files (secrets must not leak into the image)
+.env
+
+# Uploaded files (handled via Docker volume)
+uploads/
+
+# Docs
+docs/
+README.md
+HELP.md

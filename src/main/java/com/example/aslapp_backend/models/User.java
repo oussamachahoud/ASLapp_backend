@@ -43,7 +43,7 @@ public class User implements UserDetails {
     @PositiveOrZero
     private int age;
 
-    @Column
+    @Column(length = 512)
     private String imageURL;
 
 

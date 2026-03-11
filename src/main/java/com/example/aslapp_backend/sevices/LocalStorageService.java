@@ -13,14 +13,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
-@Profile("!aws") // Active when 'aws' profile is NOT active (i.e., local development)
+@Profile("local") // Active when you run with the 'local development' profile
 public class LocalStorageService implements StorageService {
 
     private final String uploadDir;
     private final String baseUrl;
 
     public LocalStorageService(
-            @Value("${app.storage.local.upload-dir:uploads}") String uploadDir,
+            @Value("${app.storage.local.upload-dir}") String uploadDir,
             @Value("${app.storage.local.base-url:http://localhost:8081/uploads}") String baseUrl) {
         this.uploadDir = uploadDir;
         this.baseUrl = baseUrl;
