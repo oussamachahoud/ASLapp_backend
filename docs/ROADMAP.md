@@ -13,7 +13,8 @@ Planned features and improvements for the ASLapp Backend, ordered by priority.
 | **Payment Gateway** | Integrate Stripe, CCP (Algérie Poste), or BaridiMob for real payment processing | 📋 Planned |
 | **Rate Limiting** | Redis-based request throttling per user / IP to prevent abuse | 📋 Planned |
 | **Production CORS** | Restrict `allowedOrigins` to the actual frontend domain | 📋 Planned |
-| **Secrets Management** | Move sensitive values (JWT secret, SMTP password) to a vault or `.env` file excluded from VCS | 📋 Planned |
+| **Secrets Management** | Move sensitive values to a vault (HashiCorp Vault, AWS Secrets Manager) | 📋 Planned |
+| **Kubernetes Deployment** | Add Helm charts and K8s manifests for cloud-native deployment | 📋 Planned |
 
 ---
 
@@ -21,6 +22,9 @@ Planned features and improvements for the ASLapp Backend, ordered by priority.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
+| **Docker Image Registry** | Push images to Docker Hub or AWS ECR for easy deployment | 📋 Planned |
+| **CI/CD Pipeline** | GitHub Actions workflow for testing, building images, and deploying | 📋 Planned |
+| **Health Check Endpoints** | `/actuator/health` for Kubernetes readiness probes | 📋 Planned |
 | **Product Reviews & Ratings** | Let users rate and review purchased products (1–5 stars + comment) | 📋 Planned |
 | **Wishlist** | Users can save products for later and receive price-drop alerts | 📋 Planned |
 | **Order Notifications** | Real-time order status updates via WebSocket or Server-Sent Events | 📋 Planned |
@@ -37,7 +41,6 @@ Planned features and improvements for the ASLapp Backend, ordered by priority.
 | **Full-Text Search** | Replace LIKE queries with PostgreSQL `tsvector` or Elasticsearch | 📋 Planned |
 | **Inventory Alerts** | Notify sellers when stock drops below a configurable threshold | 📋 Planned |
 | **Audit Log** | Track admin actions (role changes, order status updates, user deletions) | 📋 Planned |
-| **CI/CD Pipeline** | GitHub Actions workflow for automated testing, building, and deploying | 📋 Planned |
 | **API Versioning** | Version endpoints (`/api/v1/`, `/api/v2/`) for backward compatibility | 📋 Planned |
 | **Export Reports** | Admin endpoint to export orders / sales data as CSV or PDF | 📋 Planned |
 
@@ -71,3 +74,6 @@ Planned features and improvements for the ASLapp Backend, ordered by priority.
 | Global Exception Handler | Consistent error JSON across all endpoints |
 | Address Management | Algerian-specific addresses (wilaya, commune, code postal) |
 | JPA Auditing | Automatic `createdAt` / `modifiedAt` timestamps |
+| **Docker Containerization** | **Multi-stage Dockerfile with Maven build + Eclipse Temurin JRE** |
+| **Docker Compose Orchestration** | **Full stack: PostgreSQL, Redis, Backend, Frontend with health checks** |
+| **Production-Ready Setup** | **.env configuration, volume persistence, non-root user security** |

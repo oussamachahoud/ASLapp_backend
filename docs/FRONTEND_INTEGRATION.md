@@ -8,6 +8,27 @@ ASLapp uses **cookie-based JWT authentication**. The frontend does **not** need 
 
 ---
 
+## Environment Configuration
+
+### API Base URL
+
+**Development (Docker):**
+```javascript
+const API_BASE_URL = "http://localhost:8081";
+```
+
+**Development (Local):**
+```javascript
+const API_BASE_URL = "http://localhost:8081";
+```
+
+**Production:**
+```javascript
+const API_BASE_URL = "https://api.yourdomain.com";
+```
+
+---
+
 ## Authentication Setup
 
 ### Axios (Recommended)
@@ -288,6 +309,60 @@ configuration.setAllowCredentials(true);
 ```
 
 > `allowCredentials(true)` is required for cookies to work cross-origin. When it's `true`, `allowedOrigins` **cannot** be `*` — it must list explicit origins.
+
+---
+
+## Docker Deployment
+
+### Frontend Container Setup
+
+The frontend can be containerized and deployed alongside the backend using Docker Compose.
+
+**Dockerfile for Angular app:**
+```dockerfile
+# Build stage
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Serve with Nginx
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### docker-compose.yml Configuration
+
+The frontend service is automatically orchestrated with backend:
+
+```yaml
+frontend:
+  build:
+    context: ../ASLappfrontend
+    dockerfile: Dockerfile
+  container_name: aslapp_frontend
+  restart: unless-stopped
+  ports:
+    - "4200:80"
+  environment:
+    - NODE_ENV=production
+  depends_on:
+    - backend
+```
+
+**Access in Docker:**
+- Frontend: http://localhost:4200
+- Backend API: http://localhost:8081
+- Swagger UI: http://localhost:8081/swagger-ui
+
+> 📌 When running in Docker, both frontend and backend can reference each other by service name:
+> - Backend → Frontend: `http://frontend:4200`
+> - Frontend → Backend: `http://backend:8081`
 
 ---
 

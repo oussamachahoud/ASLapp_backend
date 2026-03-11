@@ -6,38 +6,69 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        CLIENT (Browser / Mobile)                │
-│                   Sends HttpOnly Cookie on each request         │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │  HTTPS
-                               ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                      SPRING BOOT APPLICATION                     │
-│                                                                  │
-│  ┌────────────────┐   ┌──────────────┐   ┌───────────────────┐  │
-│  │  JWT Filter    │──▶│  Controllers │──▶│     Services       │  │
-│  │  (Cookie-based)│   │  (REST API)  │   │  (Business Logic)  │  │
-│  └────────────────┘   └──────────────┘   └─────────┬─────────┘  │
-│                                                     │            │
-│                              ┌───────────────────────┤            │
-│                              │                       │            │
-│                              ▼                       ▼            │
-│                     ┌──────────────┐       ┌──────────────────┐  │
-│                     │ Repositories │       │  Storage Service  │  │
-│                     │    (JPA)     │       │ Local/Azure/AWS   │  │
-│                     └──────┬───────┘       └──────────────────┘  │
-│                            │                                     │
-└────────────────────────────┼─────────────────────────────────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-     ┌──────────────┐ ┌──────────┐  ┌─────────────┐
-     │  PostgreSQL   │ │  Redis   │  │ SMTP (Brevo)│
-     │  (Primary DB) │ │  (Cache) │  │  (Email)    │
-     └──────────────┘ └──────────┘  └─────────────┘
+│                     🐳 DOCKER ENVIRONMENT                       │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │               CLIENT (Browser / Mobile)                   │  │
+│  │        Sends HttpOnly Cookie on each request             │  │
+│  └────────────────────────┬─────────────────────────────────┘  │
+│                           │  HTTPS                             │
+│                           ▼                                     │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │           🐳 SPRING BOOT CONTAINER                        │  │
+│  │                                                           │  │
+│  │  ┌────────────────┐   ┌──────────────┐                   │  │
+│  │  │  JWT Filter    │──▶│  Controllers │──┐                │  │
+│  │  │ (Cookie-based) │   │  (REST API)  │  │                │  │
+│  │  └────────────────┘   └──────────────┘  │                │  │
+│  │                                         ▼                │  │
+│  │                              ┌────────────────────┐      │  │
+│  │                              │    Services        │      │  │
+│  │                              │ (Business Logic)   │      │  │
+│  │                              └────────┬───────────┘      │  │
+│  │                                       │                  │  │
+│  │                          ┌────────────┴──────────┐       │  │
+│  │                          │                       │       │  │
+│  │                  ┌───────▼────────┐      ┌──────▼─────┐ │  │
+│  │                  │ Repositories   │      │   Storage  │ │  │
+│  │                  │    (JPA)       │      │   Service  │ │  │
+│  │                  └───────┬────────┘      └────────────┘ │  │
+│  │                          │                               │  │
+│  │                          ▼                               │  │
+│  │                  ┌───────────────────┐                   │  │
+│  │                  │   Volume Mount    │                   │  │
+│  │                  │   /app/uploads    │                   ��  │
+│  │                  └───────────────────┘                   │  │
+│  └──────────────────────────┬──────────────────────────────┘  │
+│                             │                                 │
+│  ┌──────────────┐  ┌────────▼────────┐  ┌──────────────────┐ │
+│  │ 🐳 PostgreSQL │  │  🐳 Redis      │  │ 🐳 Frontend      │ │
+│  │   Container   │  │   Container    │  │   Container      │ │
+│  │  Port: 5432  │  │  Port: 6379    │  │   Port: 4200     │ │
+│  └──────────────┘  └────────────────┘  └──────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                     docker compose (orchestrated)
 ```
 
-**Architecture Style:** Monolith (modular, layered)
+**Deployment Model:** Containerized monolith with Docker Compose orchestration
+
+---
+
+## Containerization with Docker
+
+The application is fully containerized and includes:
+
+- **Multi-stage Dockerfile:** Maven build stage + lightweight JRE runtime
+- **Non-root user:** Security best practice with dedicated `spring:spring` user
+- **Volume persistence:** Uploads directory and database volumes survive container restarts
+- **Health checks:** PostgreSQL and Redis include liveness probes
+- **Environment variables:** All configuration via `.env` file (not baked into images)
+- **Frontend support:** Optional Angular frontend container (4200)
+
+**Key files:**
+- `Dockerfile` — Multi-stage build with Maven 3.9.6 + Eclipse Temurin JDK 17
+- `docker-compose.yml` — Orchestrates 4 services: PostgreSQL, Redis, Backend, Frontend
+- `.env` — Environment configuration (excluded from VCS)
 
 ---
 
@@ -60,14 +91,15 @@
 | Language | Java 17 |
 | Framework | Spring Boot 3.2.3 |
 | Security | Spring Security 6 + JWT (jjwt 0.12.6) |
-| Database | PostgreSQL |
+| Database | PostgreSQL 16 |
 | ORM | Hibernate / Spring Data JPA |
-| Caching | Redis + Spring Cache |
+| Caching | Redis 7 + Spring Cache |
 | Email | Spring Mail + Brevo SMTP |
 | Storage | Local FS / Azure Blob Storage / AWS S3 |
 | Validation | Jakarta Bean Validation |
 | API Docs | SpringDoc OpenAPI 2.5 (Swagger UI) |
-| Build Tool | Maven |
+| Build Tool | Maven 3.9.6 |
+| Containerization | Docker + Docker Compose |
 | Testing | JUnit 5 + Spring Boot Test + Spring Security Test |
 | Utilities | Lombok |
 
@@ -96,6 +128,9 @@ Small-to-medium e-commerce businesses in Algeria lack affordable, ready-to-deplo
 | 7 | Redis caching for high-traffic read endpoints | ✅ |
 | 8 | Paginated, sortable API responses across all listing endpoints | ✅ |
 | 9 | Interactive API documentation via Swagger UI | ✅ |
+| 10 | Full containerization with Docker & Docker Compose | ✅ |
+| 11 | Integrated frontend container with backend orchestration | ✅ |
+| 12 | Production-ready deployment with health checks & security | ✅ |
 
 ---
 

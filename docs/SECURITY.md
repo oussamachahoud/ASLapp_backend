@@ -124,3 +124,38 @@ All security-related errors are handled by the `GlobalExceptionHandler`:
 | `AccessDeniedException` | `403` | `{ "status": 403, "message": "Forbidden" }` |
 | `BusinessException` | varies | `{ "status": <code>, "message": "<detail>" }` |
 | `MethodArgumentNotValidException` | `400` | `{ "status": 400, "message": "Validation failed", "errors": { ... } }` |
+
+---
+
+## Docker Security Best Practices
+
+| Practice | Implementation |
+|----------|---------------|
+| **Non-root user** | Dockerfile runs as `spring:spring` user, not `root` |
+| **Minimal base image** | Uses `eclipse-temurin:17-jre-jammy` (small, regularly updated) |
+| **Health checks** | PostgreSQL and Redis include liveness probes |
+| **Secrets in .env** | Sensitive values in `.env` file (never hardcoded in Dockerfile) |
+| **Volume isolation** | Uploads and database data in named Docker volumes |
+| **Network isolation** | Docker Compose creates isolated bridge network by default |
+| **Resource limits** | Set CPU/memory limits in production docker-compose.yml |
+| **Read-only root** | Can enable `read_only: true` for read-only filesystem in production |
+
+---
+
+## Production Security Checklist
+
+- [ ] Use `.env.production` with strong passwords and keys
+- [ ] Store `.env` file outside VCS (add to `.gitignore`)
+- [ ] Set file permissions: `chmod 600 .env`
+- [ ] Rotate JWT secret key regularly
+- [ ] Use HTTPS with reverse proxy (Nginx, Traefik)
+- [ ] Configure CORS to specific frontend domain only
+- [ ] Enable PostgreSQL password authentication
+- [ ] Configure Redis with `requirepass` authentication
+- [ ] Use managed services (AWS RDS, Azure Database) in production
+- [ ] Enable database encryption at rest
+- [ ] Audit log all admin actions
+- [ ] Implement rate limiting per user/IP
+- [ ] Use secrets management vault (HashiCorp Vault, AWS Secrets Manager)
+- [ ] Regularly scan images for vulnerabilities (`docker scan`)
+- [ ] Keep base images updated regularly

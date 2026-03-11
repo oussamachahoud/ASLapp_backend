@@ -42,12 +42,37 @@
 
 ## 🚀 Quick Start
 
+### With Docker (Recommended) 🐳
+
 ```bash
 # 1. Clone
 git clone https://github.com/your-org/ASLapp_backend.git
 cd ASLapp_backend
 
-# 2. Start dependencies
+# 2. Configure environment
+cp .env.example .env  # Edit .env with your settings
+
+# 3. Start all services
+docker compose up -d --build
+
+# 4. Verify
+curl http://localhost:8081/v3/api-docs
+```
+
+- **API:** http://localhost:8081
+- **Swagger UI:** http://localhost:8081/swagger-ui
+- **Frontend:** http://localhost:4200
+- **PostgreSQL:** localhost:5432
+- **Redis:** localhost:6379
+
+### Local Development (without Docker)
+
+```bash
+# 1. Clone & configure environment
+git clone https://github.com/your-org/ASLapp_backend.git
+cd ASLapp_backend
+
+# 2. Start PostgreSQL & Redis locally
 docker run -d --name postgres -e POSTGRES_DB=ASLapp -e POSTGRES_PASSWORD=admin -p 5432:5432 postgres:16-alpine
 docker run -d --name redis -p 6379:6379 redis:7-alpine
 
@@ -56,11 +81,7 @@ mvnw.cmd clean install -DskipTests
 mvnw.cmd spring-boot:run
 ```
 
-- **API:** http://localhost:8081
-- **Swagger UI:** http://localhost:8081/swagger-ui
-- **OpenAPI JSON:** http://localhost:8081/v3/api-docs
-
-> 📘 See [Setup & Deployment](docs/SETUP.md) for the full guide including Docker Compose.
+> 📘 See [Setup & Deployment](docs/SETUP.md) for the full guide including Docker Compose, local setup, and environment variables.
 
 ---
 
